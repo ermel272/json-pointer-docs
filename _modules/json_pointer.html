@@ -90,7 +90,7 @@
 <span class="c1"># Classes</span>
 <span class="c1">#</span>
 <span class="c1">#########################</span>
-<span class="k">class</span> <span class="nc">JsonPointer</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<div class="viewcode-block" id="JsonPointer"><a class="viewcode-back" href="../index.html#json_pointer.JsonPointer">[docs]</a><span class="k">class</span> <span class="nc">JsonPointer</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
 
     <span class="c1">#########################</span>
     <span class="c1">#</span>
@@ -289,14 +289,14 @@
             <span class="k">raise</span> <span class="n">JsonPointerException</span><span class="p">(</span><span class="s1">&#39;Pointer parameter &quot;</span><span class="si">{}</span><span class="s1">&quot; given not a string,&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">pointer</span><span class="p">))</span>
 
         <span class="k">if</span> <span class="n">pointer</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__EMPTY_STR</span> <span class="ow">and</span> <span class="n">pointer</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__SLASH</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="n">JsonPointerException</span><span class="p">(</span><span class="s1">&#39;Path &quot;</span><span class="si">{}</span><span class="s1">&quot; given not in correct JSON pointer format.&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">pointer</span><span class="p">))</span>
+            <span class="k">raise</span> <span class="n">JsonPointerException</span><span class="p">(</span><span class="s1">&#39;Path &quot;</span><span class="si">{}</span><span class="s1">&quot; given not in correct JSON pointer format.&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">pointer</span><span class="p">))</span></div>
 
 
-<span class="k">class</span> <span class="nc">JsonPointerException</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+<div class="viewcode-block" id="JsonPointerException"><a class="viewcode-back" href="../index.html#json_pointer.JsonPointerException">[docs]</a><span class="k">class</span> <span class="nc">JsonPointerException</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Class for exceptions raised within the json_pointer module.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">pass</span>
+    <span class="k">pass</span></div>
 </pre></div>
 
           </div>

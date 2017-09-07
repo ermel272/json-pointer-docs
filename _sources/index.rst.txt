@@ -11,3 +11,7 @@ json-pointer docs
    :caption: Contents:
 
 .. autofunction:: json_pointer.evaluate
+
+.. autoclass:: json_pointer.JsonPointer
+
+.. autoexception:: json_pointer.JsonPointerException
