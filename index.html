@@ -5,7 +5,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>Welcome to json-pointer’s documentation! &#8212; json-pointer 0.0.0 documentation</title>
+    <title>json-pointer docs &#8212; json-pointer 0.0.0 documentation</title>
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript">
@@ -38,15 +38,50 @@
         <div class="bodywrapper">
           <div class="body" role="main">
             
-  <div class="section" id="welcome-to-json-pointer-s-documentation">
-<h1>Welcome to json-pointer’s documentation!<a class="headerlink" href="#welcome-to-json-pointer-s-documentation" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="json-pointer-docs">
+<h1>json-pointer docs<a class="headerlink" href="#json-pointer-docs" title="Permalink to this headline">¶</a></h1>
 <div class="toctree-wrapper compound">
 </div>
-<span class="target" id="module-json_pointer"></span><p>Module:     json_pointer.py
-Author:     Chris Ermel
-Purpose:    Implements a utility for administering the JSON pointer standard (IETF RFC 6901)</p>
-<blockquote>
-<div>defined at <a class="reference external" href="https://tools.ietf.org/html/rfc6901">https://tools.ietf.org/html/rfc6901</a></div></blockquote>
+<dl class="function">
+<dt id="json_pointer.evaluate">
+<code class="descclassname">json_pointer.</code><code class="descname">evaluate</code><span class="sig-paren">(</span><em>pointer</em>, <em>obj</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/json_pointer.html#evaluate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#json_pointer.evaluate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieves the attribute specified by param path from param obj.</p>
+<p>— Example 1 —</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">json_pointer</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">foo</span> <span class="o">=</span> <span class="n">json_pointer</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="s1">&#39;/foo&#39;</span><span class="p">,</span> <span class="p">{</span><span class="s1">&#39;foo&#39;</span><span class="p">:</span><span class="s1">&#39;bar&#39;</span><span class="p">})</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">foo</span> <span class="o">==</span> <span class="s1">&#39;bar&#39;</span>
+</pre></div>
+</div>
+<p>— Example 2 —</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">foo</span> <span class="o">=</span> <span class="n">json_pointer</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="s1">&#39;/foo/-&#39;</span><span class="p">,</span> <span class="p">{</span><span class="s1">&#39;foo&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;bar&#39;</span><span class="p">,</span> <span class="s1">&#39;baz&#39;</span><span class="p">]})</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="n">foo</span> <span class="o">==</span> <span class="s1">&#39;baz&#39;</span>
+</pre></div>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>pointer</strong> (<em>str</em>) – A string JSON pointer adhering to the IETF RFC 6901 JSON pointer standard for retrieving
+a specific attribute from a JSON-style dictionary.</li>
+<li><strong>obj</strong> (<em>dict</em>) – A dict of key/value pairs.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">The attribute specified by the path attribute, or None if it doesn’t exist.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first">any</p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><p class="first last"><strong>JsonPointerException</strong> – When the specified JSON pointer path does not resolve, either because the
+path does not exist within the dict or an out of bounds array index is specified.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
 </div>
 
 
