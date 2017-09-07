@@ -85,7 +85,71 @@ path does not exist within the dict or an out of bounds array index is specified
 <dl class="class">
 <dt id="json_pointer.JsonPointer">
 <em class="property">class </em><code class="descclassname">json_pointer.</code><code class="descname">JsonPointer</code><span class="sig-paren">(</span><em>pointer</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/json_pointer.html#JsonPointer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#json_pointer.JsonPointer" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><dl class="method">
+<dt id="json_pointer.JsonPointer.evaluate">
+<code class="descname">evaluate</code><span class="sig-paren">(</span><em>obj</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/json_pointer.html#JsonPointer.evaluate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#json_pointer.JsonPointer.evaluate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Evaluates the JsonPointer against param obj.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>obj</strong> (<em>dict</em>) – A dict of key/value pairs.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">The attribute specified by the path attribute, or None if it doesn’t exist.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">any</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><a class="reference internal" href="#json_pointer.JsonPointerException" title="json_pointer.JsonPointerException"><strong>JsonPointerException</strong></a> – When the specified JSON pointer path does not resolve, either because the
+path does not exist within the dict or an out of bounds array index is specified.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="json_pointer.JsonPointer.move_pointer_backward">
+<code class="descname">move_pointer_backward</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/json_pointer.html#JsonPointer.move_pointer_backward"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#json_pointer.JsonPointer.move_pointer_backward" title="Permalink to this definition">¶</a></dt>
+<dd><p>Moves the pointer back to the currently referenced attribute’s parent.</p>
+<p>— Example —</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">pointer</span> <span class="o">=</span> <span class="n">JsonPointer</span><span class="p">(</span><span class="s1">&#39;/list/0&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pointer</span><span class="o">.</span><span class="n">move_pointer_backward</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="nb">str</span><span class="p">(</span><span class="n">pointer</span><span class="p">)</span> <span class="o">==</span> <span class="s1">&#39;/list&#39;</span>
+</pre></div>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">The name of the child attribute, or None if the JsonPointer is currently
+pointing to the root of the object.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">str or None</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="json_pointer.JsonPointer.move_pointer_forward">
+<code class="descname">move_pointer_forward</code><span class="sig-paren">(</span><em>attribute</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/json_pointer.html#JsonPointer.move_pointer_forward"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#json_pointer.JsonPointer.move_pointer_forward" title="Permalink to this definition">¶</a></dt>
+<dd><p>Moves the pointer forward to a child attribute of the currently referenced object.</p>
+<p>— Example —</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">pointer</span> <span class="o">=</span> <span class="n">JsonPointer</span><span class="p">(</span><span class="s1">&#39;/list&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pointer</span><span class="o">.</span><span class="n">move_pointer_forward</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">assert</span> <span class="nb">str</span><span class="p">(</span><span class="n">pointer</span><span class="p">)</span> <span class="o">==</span> <span class="s1">&#39;/list/0&#39;</span>
+</pre></div>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>attribute</strong> (<em>str</em><em> or </em><em>int</em>) – The child attribute to move to.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
 
 <dl class="exception">
 <dt id="json_pointer.JsonPointerException">

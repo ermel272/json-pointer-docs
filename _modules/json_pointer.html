@@ -152,7 +152,7 @@
     <span class="c1"># Interface</span>
     <span class="c1">#</span>
     <span class="c1">#########################</span>
-    <span class="k">def</span> <span class="nf">evaluate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">):</span>
+<div class="viewcode-block" id="JsonPointer.evaluate"><a class="viewcode-back" href="../index.html#json_pointer.JsonPointer.evaluate">[docs]</a>    <span class="k">def</span> <span class="nf">evaluate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Evaluates the JsonPointer against param obj.</span>
 
@@ -181,9 +181,9 @@
                                            <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">piece</span><span class="p">,</span> <span class="n">last_pointer_piece</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="p">)))</span>
             <span class="n">last_pointer_piece</span> <span class="o">=</span> <span class="n">piece</span>
 
-        <span class="k">return</span> <span class="n">obj</span>
+        <span class="k">return</span> <span class="n">obj</span></div>
 
-    <span class="k">def</span> <span class="nf">move_pointer_forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">attribute</span><span class="p">):</span>
+<div class="viewcode-block" id="JsonPointer.move_pointer_forward"><a class="viewcode-back" href="../index.html#json_pointer.JsonPointer.move_pointer_forward">[docs]</a>    <span class="k">def</span> <span class="nf">move_pointer_forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">attribute</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Moves the pointer forward to a child attribute of the currently referenced object.</span>
 
@@ -199,9 +199,9 @@
         <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">attribute</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">attribute</span><span class="p">,</span> <span class="nb">int</span><span class="p">),</span> \
             <span class="s1">&#39;attribute parameter given not a string or int.&#39;</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">__pieces</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">attribute</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__pieces</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">attribute</span><span class="p">))</span></div>
 
-    <span class="k">def</span> <span class="nf">move_pointer_backward</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="JsonPointer.move_pointer_backward"><a class="viewcode-back" href="../index.html#json_pointer.JsonPointer.move_pointer_backward">[docs]</a>    <span class="k">def</span> <span class="nf">move_pointer_backward</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Moves the pointer back to the currently referenced attribute&#39;s parent.</span>
 
@@ -215,7 +215,7 @@
 <span class="sd">            pointing to the root of the object.</span>
 <span class="sd">        :rtype: str or None</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__pieces</span><span class="o">.</span><span class="n">pop</span><span class="p">()</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__pieces</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="kc">None</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__pieces</span><span class="o">.</span><span class="n">pop</span><span class="p">()</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__pieces</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="kc">None</span></div>
 
     <span class="c1">#########################</span>
     <span class="c1">#</span>

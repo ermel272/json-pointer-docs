@@ -13,5 +13,6 @@ json-pointer docs
 .. autofunction:: json_pointer.evaluate
 
 .. autoclass:: json_pointer.JsonPointer
+   :members:
 
 .. autoexception:: json_pointer.JsonPointerException
