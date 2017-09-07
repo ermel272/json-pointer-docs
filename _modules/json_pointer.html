@@ -1,0 +1,354 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>json_pointer &#8212; json-pointer 0.0.0 documentation</title>
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.0.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for json_pointer</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Module:     json_pointer.py</span>
+<span class="sd">Author:     Chris Ermel</span>
+<span class="sd">Purpose:    Implements a utility for administering the JSON pointer standard (IETF RFC 6901)</span>
+<span class="sd">            defined at https://tools.ietf.org/html/rfc6901</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">urllib</span> <span class="k">import</span> <span class="n">unquote</span>
+
+
+<span class="c1">#########################</span>
+<span class="c1">#</span>
+<span class="c1"># Convenience Functions</span>
+<span class="c1">#</span>
+<span class="c1">#########################</span>
+<div class="viewcode-block" id="evaluate"><a class="viewcode-back" href="../index.html#json_pointer.evaluate">[docs]</a><span class="k">def</span> <span class="nf">evaluate</span><span class="p">(</span><span class="n">pointer</span><span class="p">,</span> <span class="n">obj</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Retrieves the attribute specified by param path from param obj.</span>
+
+<span class="sd">    --- Example 1 ---</span>
+
+<span class="sd">    &gt;&gt;&gt; import json_pointer</span>
+<span class="sd">    &gt;&gt;&gt; foo = json_pointer.evaluate(&#39;/foo&#39;, {&#39;foo&#39;:&#39;bar&#39;})</span>
+<span class="sd">    &gt;&gt;&gt; assert foo == &#39;bar&#39;</span>
+
+<span class="sd">    --- Example 2 ---</span>
+
+<span class="sd">    &gt;&gt;&gt; foo = json_pointer.evaluate(&#39;/foo/-&#39;, {&#39;foo&#39;: [&#39;bar&#39;, &#39;baz&#39;]})</span>
+<span class="sd">    &gt;&gt;&gt; assert foo == &#39;baz&#39;</span>
+
+<span class="sd">    :param pointer: A string JSON pointer adhering to the IETF RFC 6901 JSON pointer standard for retrieving</span>
+<span class="sd">        a specific attribute from a JSON-style dictionary.</span>
+<span class="sd">    :type pointer: str</span>
+
+<span class="sd">    :param obj: A dict of key/value pairs.</span>
+<span class="sd">    :type obj: dict</span>
+
+<span class="sd">    :return: The attribute specified by the path attribute, or None if it doesn&#39;t exist.</span>
+<span class="sd">    :rtype: any</span>
+
+<span class="sd">    :raises JsonPointerException: When the specified JSON pointer path does not resolve, either because the</span>
+<span class="sd">        path does not exist within the dict or an out of bounds array index is specified.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">JsonPointer</span><span class="p">(</span><span class="n">pointer</span><span class="p">)</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span></div>
+
+
+<span class="c1">#########################</span>
+<span class="c1">#</span>
+<span class="c1"># Classes</span>
+<span class="c1">#</span>
+<span class="c1">#########################</span>
+<span class="k">class</span> <span class="nc">JsonPointer</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+
+    <span class="c1">#########################</span>
+    <span class="c1">#</span>
+    <span class="c1"># String Constants</span>
+    <span class="c1">#</span>
+    <span class="c1">#########################</span>
+    <span class="n">__SLASH</span> <span class="o">=</span> <span class="s1">&#39;/&#39;</span>
+    <span class="n">__TILDE</span> <span class="o">=</span> <span class="s1">&#39;~&#39;</span>
+    <span class="n">__EMPTY_STR</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+    <span class="n">__ESCAPED_SLASH</span> <span class="o">=</span> <span class="s1">&#39;~1&#39;</span>
+    <span class="n">__ESCAPED_TILDE</span> <span class="o">=</span> <span class="s1">&#39;~0&#39;</span>
+    <span class="n">__DASH</span> <span class="o">=</span> <span class="s1">&#39;-&#39;</span>
+    <span class="n">__ZERO</span> <span class="o">=</span> <span class="s1">&#39;0&#39;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pointer</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Creates a new JsonPointer instance based on param pointer.</span>
+
+<span class="sd">        :param pointer: The JSON Pointer string used to instantiate the JsonPointer object.</span>
+<span class="sd">        :type pointer: str</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__validate_pointer</span><span class="p">(</span><span class="n">pointer</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__pieces</span> <span class="o">=</span> <span class="n">pointer</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__SLASH</span><span class="p">)[</span><span class="mi">1</span><span class="p">:]</span>
+
+    <span class="k">def</span> <span class="nf">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Two JsonPointer instances are equal if their string representations are the same.</span>
+
+<span class="sd">        :param other: The other JsonPointer instance being compared.</span>
+<span class="sd">        :type other: JsonPointer</span>
+
+<span class="sd">        :return: True if the JsonPointer&#39;s are equal, False otherwise.</span>
+<span class="sd">        :rtype: bool</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">==</span> <span class="nb">str</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__hash__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        JsonPointer hashing is equivalent to the hash of the string representation of the pointer.</span>
+
+<span class="sd">        :return: The hash value of the JsonPointer.</span>
+<span class="sd">        :rtype: int</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__hash__</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        :return: A nice string representation of the JsonPointer.</span>
+<span class="sd">        :rtype: str</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">string</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__EMPTY_STR</span>
+        <span class="k">for</span> <span class="n">piece</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__pieces</span><span class="p">:</span>
+            <span class="n">string</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">{}{}{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">string</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__SLASH</span><span class="p">,</span> <span class="n">piece</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">string</span>
+
+    <span class="c1">#########################</span>
+    <span class="c1">#</span>
+    <span class="c1"># Interface</span>
+    <span class="c1">#</span>
+    <span class="c1">#########################</span>
+    <span class="k">def</span> <span class="nf">evaluate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Evaluates the JsonPointer against param obj.</span>
+
+<span class="sd">        :param obj: A dict of key/value pairs.</span>
+<span class="sd">        :type obj: dict</span>
+
+<span class="sd">        :return: The attribute specified by the path attribute, or None if it doesn&#39;t exist.</span>
+<span class="sd">        :rtype: any</span>
+
+<span class="sd">        :raises JsonPointerException: When the specified JSON pointer path does not resolve, either because the</span>
+<span class="sd">            path does not exist within the dict or an out of bounds array index is specified.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="nb">dict</span><span class="p">),</span> <span class="s1">&#39;obj parameter given not a dict&#39;</span>
+
+        <span class="c1"># Used for error reporting during array access failures</span>
+        <span class="n">last_pointer_piece</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="k">for</span> <span class="n">piece</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__pieces</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">obj</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__access_attribute_from_object</span><span class="p">(</span><span class="n">piece</span><span class="p">,</span> <span class="n">obj</span><span class="p">)</span>
+            <span class="k">except</span> <span class="p">(</span><span class="ne">KeyError</span><span class="p">,</span> <span class="ne">TypeError</span><span class="p">,</span> <span class="ne">ValueError</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="n">JsonPointerException</span><span class="p">(</span><span class="s1">&#39;Could not use key &quot;</span><span class="si">{}</span><span class="s1">&quot; to access JSON given pointer &quot;</span><span class="si">{}</span><span class="s1">&quot;.&quot;&#39;</span>
+                                           <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">piece</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="p">)))</span>
+            <span class="k">except</span> <span class="ne">IndexError</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">JsonPointerException</span><span class="p">(</span><span class="s1">&#39;Array index &quot;</span><span class="si">{}</span><span class="s1">&quot; out of bounds for array &quot;</span><span class="si">{}</span><span class="s1">&quot; given pointer &quot;</span><span class="si">{}</span><span class="s1">&quot;.&#39;</span>
+                                           <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">piece</span><span class="p">,</span> <span class="n">last_pointer_piece</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="p">)))</span>
+            <span class="n">last_pointer_piece</span> <span class="o">=</span> <span class="n">piece</span>
+
+        <span class="k">return</span> <span class="n">obj</span>
+
+    <span class="k">def</span> <span class="nf">move_pointer_forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">attribute</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Moves the pointer forward to a child attribute of the currently referenced object.</span>
+
+<span class="sd">        --- Example ---</span>
+
+<span class="sd">        &gt;&gt;&gt; pointer = JsonPointer(&#39;/list&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; pointer.move_pointer_forward(0)</span>
+<span class="sd">        &gt;&gt;&gt; assert str(pointer) == &#39;/list/0&#39;</span>
+
+<span class="sd">        :param attribute: The child attribute to move to.</span>
+<span class="sd">        :type attribute: str or int</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">attribute</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">attribute</span><span class="p">,</span> <span class="nb">int</span><span class="p">),</span> \
+            <span class="s1">&#39;attribute parameter given not a string or int.&#39;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">__pieces</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">attribute</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">move_pointer_backward</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Moves the pointer back to the currently referenced attribute&#39;s parent.</span>
+
+<span class="sd">        --- Example ---</span>
+
+<span class="sd">        &gt;&gt;&gt; pointer = JsonPointer(&#39;/list/0&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; pointer.move_pointer_backward()</span>
+<span class="sd">        &gt;&gt;&gt; assert str(pointer) == &#39;/list&#39;</span>
+
+<span class="sd">        :return: The name of the child attribute, or None if the JsonPointer is currently</span>
+<span class="sd">            pointing to the root of the object.</span>
+<span class="sd">        :rtype: str or None</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__pieces</span><span class="o">.</span><span class="n">pop</span><span class="p">()</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__pieces</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="kc">None</span>
+
+    <span class="c1">#########################</span>
+    <span class="c1">#</span>
+    <span class="c1"># Helper Functions</span>
+    <span class="c1">#</span>
+    <span class="c1">#########################</span>
+    <span class="k">def</span> <span class="nf">__access_attribute_from_object</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">obj</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Attempts to access the given key from param obj.</span>
+
+<span class="sd">        :param key: The value being used to key into the obj param.</span>
+<span class="sd">        :type key: str or int</span>
+
+<span class="sd">        :param obj: The list or dict object being keyed into by param key.</span>
+<span class="sd">        :type obj: dict or list</span>
+
+<span class="sd">        :return: The object that has been accessed via param key.</span>
+<span class="sd">        :rtype: dict or list</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+            <span class="n">key</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__revert_escaped_path_string</span><span class="p">(</span>
+                <span class="n">unquote</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+            <span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">key</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">__DASH</span><span class="p">:</span>
+                <span class="c1"># Special case: &#39;-&#39; can be specified to access the final list element</span>
+                <span class="n">key</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">key</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">key</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">__ZERO</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="n">JsonPointerException</span><span class="p">(</span><span class="s1">&#39;Found a leading zero in pointer &quot;</span><span class="si">{}</span><span class="s1">&quot;.&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="p">)))</span>
+                <span class="n">key</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">obj</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="nf">__escape_path_string</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">string</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Replaces tildes with ~0 and slashes with ~1, if contained within the given string.</span>
+
+<span class="sd">        :param string: The path string being escaped.</span>
+<span class="sd">        :type string: str</span>
+
+<span class="sd">        :return: The equivalent path string with slashes and tildes escaped.</span>
+<span class="sd">        :rtype: str</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">string</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__TILDE</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__ESCAPED_TILDE</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__SLASH</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__ESCAPED_SLASH</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__revert_escaped_path_string</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">string</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Replaces occurrences of ~0 with tildes and occurrences of ~1 with slashes,</span>
+<span class="sd">        if contained within the given string.</span>
+
+<span class="sd">        :param string: The path string being reverted.</span>
+<span class="sd">        :type string: str</span>
+
+<span class="sd">        :return: The equivalent path string with escaped slashes and tildes reverted.</span>
+<span class="sd">        :rtype: str</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">string</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__ESCAPED_SLASH</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__SLASH</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__ESCAPED_TILDE</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__TILDE</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__validate_pointer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pointer</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Validates the pointer string.</span>
+
+<span class="sd">        :param pointer: The string representation of the JsonPointer.</span>
+<span class="sd">        :type pointer: str</span>
+
+<span class="sd">        :raises JsonPointerException: If the pointer isn&#39;t a string, or if the pointer</span>
+<span class="sd">            does not begin with a slash character.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">pointer</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="n">JsonPointerException</span><span class="p">(</span><span class="s1">&#39;Pointer parameter &quot;</span><span class="si">{}</span><span class="s1">&quot; given not a string,&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">pointer</span><span class="p">))</span>
+
+        <span class="k">if</span> <span class="n">pointer</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__EMPTY_STR</span> <span class="ow">and</span> <span class="n">pointer</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__SLASH</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">JsonPointerException</span><span class="p">(</span><span class="s1">&#39;Path &quot;</span><span class="si">{}</span><span class="s1">&quot; given not in correct JSON pointer format.&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">pointer</span><span class="p">))</span>
+
+
+<span class="k">class</span> <span class="nc">JsonPointerException</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Class for exceptions raised within the json_pointer module.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">pass</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">json-pointer</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2017, Chris Ermel.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.3</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>
